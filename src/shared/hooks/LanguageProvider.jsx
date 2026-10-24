@@ -7,7 +7,10 @@ const LanguageProvider = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const lang = searchParams.get('lang') || 'uk';
+    // Папки переводов — ua и en; «uk» не существует (давало 404 на translate.json).
+    let stored = null;
+    try { stored = localStorage.getItem('value'); } catch { stored = null; }
+    const lang = searchParams.get('lang') || stored || 'ua';
     i18n.changeLanguage(lang);
   }, []);
 

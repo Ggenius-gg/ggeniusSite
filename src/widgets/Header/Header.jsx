@@ -3,7 +3,7 @@ import style from '../../shared/styles/index.module.css';
 
 import { useState } from 'react';
 import { useAuth } from '../../domains/auth/useAuth';
-import { useTelegramAuth } from '../../domains/auth/hooks/useTelegramAuth';
+import { BOT_LOGIN_URL } from '../../shared/api/site';
 import { useLanguage } from '../../shared/i18n/hooks/LangChange';
 import { useLang } from '../../shared/i18n/hooks/useLang';
 
@@ -15,37 +15,34 @@ import tt from '../Footer/img/tt.svg';
 import ds from '../Footer/img/ds.svg';
 
 
+// Пункты меню. Магазина (Donate) больше нет — сайт ничего не продаёт.
+const NAV_ITEMS = [
+  { path: 'Home', key: 'navListItemLinkHome' },
+  { path: 'Tourn', key: 'navListItemLinkTourn' },
+  { path: 'leagues', key: 'navListItemLinkLeagues' },
+  { path: 'About', key: 'navListItemLinkAbout' },
+  { path: 'Work', key: 'navListItemLinkWork' },
+  { path: 'Our', key: 'navListItemLinkOur' },
+];
+
 const Header = () => {
   const auth = useAuth();
   const { t } = useLang()
   const [menu, setMenu] = useState(false);
-  const { user, login, logout } = auth || {}; // безопасная деструктуризация
+  const { me, token, logout } = auth || {}; // безопасная деструктуризация
   const { lang, changeLanguage } = useLanguage();
-  // console.log(user);
 
-
-  // // Получаем Telegram авторизацию из URL
-  // useEffect(() => {
-  //   if (!auth) return;
-  //   const params = new URLSearchParams(location.search);
-  //   if (params.get('id')) {
-  //     // https://ggenius-api.onrender.com
-  //     // http://localhost:8000
-  //     fetch(`https://ed8f-109-229-2-47.ngrok-free.app/bots/auth.php?${params.toString()}`)
-  //       .then(res => res.json())
-  //       .then(data => {
-  //         login(data);
-  //         window.history.replaceState({}, document.title, window.location.pathname);
-  //       });
-  //   }
-  // }, [location.search, auth, login]);
-
-  useTelegramAuth({ auth, login });
-
+  // Вход только через нашего бота: бот пришлёт кнопку «Войти на сайт»,
+  // она откроет /auth/callback с подписанными полями Telegram.
   const loginViaBot = () => {
-    const botUsername = 'TestAuthBotb_bot'; // TestAuthBotb_bot  || ggeniusgg_bot
-    window.location.href = `https://t.me/${botUsername}?start=auth`;
+    window.location.href = BOT_LOGIN_URL;
   }
+
+  // Вошёл (есть JWT). Пока профиль грузится — вместо ника «Профіль».
+  const user = token ? {
+    name: me ? (me.identity.nickname || me.identity.display_name || t('navLinkLoginListItemLink')) : t('navLinkLoginListItemLink'),
+    avatar: me?.identity.avatar_url || null,
+  } : null;
 
   return (
     <header className={style.header}>
@@ -62,8 +59,8 @@ const Header = () => {
               {user ? (
                 <div className={style.navLinkLogin}>
                   <NavLink to={`/profile?lang=${lang}`} className={style.navLinkLoginUsers}>
-                    <span>{user.nickname}</span>
-                    <img className={style.navLinkLoginUsersAvatar} src={user.avatar_permanent_url} alt="" />
+                    <span>{user.name}</span>
+                    {user.avatar && <img className={style.navLinkLoginUsersAvatar} src={user.avatar} alt="" />}
                   </NavLink>
                   <ul className={style.navLinkLoginList}>
                     <li className={style.navLinkLoginListItem} onClick={() => setMenu(!menu)}>
@@ -101,17 +98,16 @@ const Header = () => {
 
             {/* Ссылки на страницы Desktop */}
             <ul className={style.navList}>
-              {/* 'Donate' */}
-              {['Home', 'About', 'Work', 'Our', 'Donate'].map((item, idx) => (
+              {NAV_ITEMS.map((item, idx) => (
                 <li className={style.navListItem} key={idx}>
                   <NavLink
-                    to={`/${item}?lang=${lang}`}
+                    to={`/${item.path}?lang=${lang}`}
                     end
                     className={({ isActive }) =>
                       isActive ? `${style.navListItemLink} ${style.active}` : style.navListItemLink
                     }
                   >
-                    {t(`navListItemLink${item}`)}
+                    {t(item.key)}
                   </NavLink>
                 </li>
               ))}
@@ -122,12 +118,12 @@ const Header = () => {
               {user ? (
                 <div className={style.navLinkLogin}>
                   <div className={style.navLinkLoginUsers}>
-                    <span>{user.nickname}</span>
-                    <img className={style.navLinkLoginUsersAvatar} src={user.avatar_permanent_url} alt="" />
+                    <span>{user.name}</span>
+                    {user.avatar && <img className={style.navLinkLoginUsersAvatar} src={user.avatar} alt="" />}
                   </div>
                   <ul className={style.navLinkLoginList}>
                     <li className={style.navLinkLoginListItem}>
-                      <Link to={`profile/?lang=${lang}`} className={style.navLinkLoginListItemLink}>
+                      <Link to={`/profile?lang=${lang}`} className={style.navLinkLoginListItemLink}>
                         {t('navLinkLoginListItemLink')}
                       </Link>
                     </li>
@@ -140,7 +136,7 @@ const Header = () => {
                 </div>
               ) : (
                 <button onClick={loginViaBot} className={style.navLink}>
-                  {t('navLink')}
+                  {t('navLogin')}
                 </button>
               )}
 
@@ -168,16 +164,16 @@ const Header = () => {
               </div>
               {/* Ссылки на страницы */}
               <ul className={style.navList}>
-                {['Home', 'About', 'Work', 'Our', 'Donate'].map((item, idx) => (
+                {NAV_ITEMS.map((item, idx) => (
                   <li className={style.navListItem} key={idx} onClick={() => setMenu(!menu)}>
                     <NavLink
-                      to={`/${item}?lang=${lang}`}
+                      to={`/${item.path}?lang=${lang}`}
                       end
                       className={({ isActive }) =>
                         isActive ? `${style.navListItemLink} ${style.active}` : style.navListItemLink
                       }
                     >
-                      {t(`navListItemLink${item}`)}
+                      {t(item.key)}
                     </NavLink>
                   </li>
                 ))}

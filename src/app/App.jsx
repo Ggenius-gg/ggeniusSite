@@ -2,7 +2,7 @@ import style from '../shared/styles/index.module.css';
 import Header from '../widgets/Header/Header';
 import Footer from '../widgets/Footer/Footer';
 import { Outlet, useLocation } from 'react-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import LanguageProvider from '../shared/hooks/LanguageProvider';
 import { AuthProvider } from '../domains/auth/useAuth';
 import AOS from 'aos';
@@ -21,43 +21,6 @@ const App = () => {
 
 
   const location = useLocation();
-
-  const [ord, setOrd] = useState([])
-  const [trans, setTrans] = useState([])
-
-
-  useEffect(() => {
-    fetch('http://localhost:8000/mlbb/get_posts.php?table=transactions')
-      .then(g => g.json())
-      .then(data => setTrans(data))
-      .catch(err => console.error(err))
-  }, [])
-
-  useEffect(() => {
-    fetch('http://localhost:8000/mlbb/get_posts.php?table=orders')
-      .then(g => g.json())
-      .then(data => setOrd(data))
-      .catch(err => console.error(err))
-  }, [])
-
-  // useEffect(() => {
-  //   fetch('http://localhost:8000/mlbb/get_posts.php?table=shop_packages')
-  //     .then(g => g.json())
-  //     .then(data => setOrd(data))
-  //     .catch(err => console.error(err))
-  // }, [])
-
-  console.log('Orders: ', ord);
-  console.log('Transactions: ', trans);
-
-  // const vip = ord.map(item => {
-  //   console.log(item.vip_service_code);
-  // })
-
-
-
-  //http://localhost:8000/pay/moogold_test.php
-
 
   const transitions = useTransition(location, {
     from: {
@@ -82,6 +45,8 @@ const App = () => {
     });
   }, [location]);
 
+  // AuthProvider — только здесь. Второй аргумент ViteReactSSG в main.jsx —
+  // это setup-функция, а не обёртка: JSX, который она возвращает, не рисуется.
   return (<>
     <AuthProvider>
       <div className={style.wrapper}>

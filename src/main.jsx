@@ -3,7 +3,6 @@ import './i18n.js'
 import { RouterProvider } from 'react-router-dom'
 import { routes } from './app/routers.jsx';
 import { ViteReactSSG } from 'vite-react-ssg';
-import { AuthProvider } from './domains/auth/useAuth.jsx';
 const redirect = sessionStorage.getItem("redirect");
 
 if (redirect) {
@@ -19,12 +18,10 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// vite-react-ssg сам создаёт RouterProvider. Второй аргумент — setup-функция
+// (её JSX не рисуется), поэтому AuthProvider живёт в app/App.jsx.
 export const createApp = ViteReactSSG(
   { routes },
-  ({ app }) => (
-    <AuthProvider>
-      {app}
-    </AuthProvider>
-  ),         // vite-react-ssg сам создаёт RouterProvider
+  () => {},
   { rootContainer: '#app' }
 );
