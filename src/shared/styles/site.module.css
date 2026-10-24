@@ -6,7 +6,9 @@
 */
 
 .page {
-  padding: 80px 0 100px;
+  /* --header-overlap выставляет Header.jsx: высота шапки, если она fixed
+     (телефон), иначе 0. Так заголовок страницы никогда не уходит под шапку. */
+  padding: calc(var(--header-overlap, 0px) + 80px) 0 100px;
   color: #fff;
   min-height: 50vh;
 }
@@ -304,8 +306,10 @@
 
 .avatar {
   flex: none;
+  flex-shrink: 0;
   width: 40px;
   height: 40px;
+  aspect-ratio: 1/1;
   border-radius: 50%;
   object-fit: cover;
   background: rgba(53, 117, 255, 0.35);
@@ -488,7 +492,7 @@
 
 @media screen and (max-width: 600px) {
   .page {
-    padding: 48px 0 80px;
+    padding: calc(var(--header-overlap, 0px) + 32px) 0 80px;
   }
 
   .pageTitle {
@@ -501,5 +505,13 @@
 
   .matches {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Шапка становится position: fixed на ≤580px (index.module.css). Пока Header.jsx
+   не измерил её (первый кадр), берём 100px с запасом. */
+@media screen and (max-width: 580px) {
+  .page {
+    padding-top: calc(var(--header-overlap, 100px) + 24px);
   }
 }

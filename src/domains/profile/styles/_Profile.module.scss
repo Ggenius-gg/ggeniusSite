@@ -67,6 +67,8 @@
   width: 132px;
   height: 132px;
   border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
   stroke-width: 3px;
   aspect-ratio: 1/1;
   stroke: #0064ff;
