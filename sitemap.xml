@@ -36,6 +36,13 @@
 </url>
 
 <url>
+<loc>https://ggenius.shop/leagues</loc>
+<lastmod>2026-10-24</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.7</priority>
+</url>
+
+<url>
 <loc>https://ggenius.shop/Our</loc>
 <lastmod>2026-03-02</lastmod>
 <changefreq>monthly</changefreq>
@@ -57,40 +64,10 @@
 </url>
 
 <url>
-<loc>https://ggenius.shop/Donate</loc>
-<lastmod>2026-03-02</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.8</priority>
-</url>
-
-<url>
-<loc>https://ggenius.shop/Products</loc>
-<lastmod>2026-03-02</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.8</priority>
-</url>
-
-<!-- Example product page (replace with real product URLs or generate dynamically) -->
-
-<url>
 <loc>https://ggenius.shop/Work</loc>
 <lastmod>2026-03-02</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.4</priority>
-</url>
-
-<url>
-<loc>https://ggenius.shop/payment-success</loc>
-<lastmod>2026-03-02</lastmod>
-<changefreq>yearly</changefreq>
-<priority>0.2</priority>
-</url>
-
-<url>
-<loc>https://ggenius.shop/payment-fail</loc>
-<lastmod>2026-03-02</lastmod>
-<changefreq>yearly</changefreq>
-<priority>0.2</priority>
 </url>
 
 <url>
