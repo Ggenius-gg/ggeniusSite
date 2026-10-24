@@ -56,9 +56,15 @@ const Footer = () => {
                 </NavLink>
               </li>
               <li className={style.navListItem}>
-                <NavLink to={`/Donate?lang=${value}`} end
+                <NavLink to={`/Tourn?lang=${value}`} end
                   className={({ isActive }) => isActive ? `${style.navListItemLink} ${style.active}` : style.navListItemLink}>
-                  {t('navListItemLinkDonate')}
+                  {t('navListItemLinkTourn')}
+                </NavLink>
+              </li>
+              <li className={style.navListItem}>
+                <NavLink to={`/leagues?lang=${value}`} end
+                  className={({ isActive }) => isActive ? `${style.navListItemLink} ${style.active}` : style.navListItemLink}>
+                  {t('navListItemLinkLeagues')}
                 </NavLink>
               </li>
             </ul>
