@@ -1,7 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import style from '../../shared/styles/index.module.css';
 
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useAuth } from '../../domains/auth/useAuth';
 import { BOT_LOGIN_URL } from '../../shared/api/site';
 import { useLanguage } from '../../shared/i18n/hooks/LangChange';
@@ -25,10 +25,43 @@ const NAV_ITEMS = [
   { path: 'Our', key: 'navListItemLinkOur' },
 ];
 
+// Реальная высота шапки → CSS-переменные на :root:
+//   --header-h       — высота шапки в px (всегда);
+//   --header-overlap — сколько шапка перекрывает страницу: высота, если шапка
+//                      position: fixed (мобильная вёрстка ≤580px), иначе 0px.
+// Страницы на site.module.css (.page) берут отступ сверху от --header-overlap,
+// поэтому заголовок не прячется под шапкой при любой её высоте
+// (длинный ник, другой шрифт, перенос строки на телефоне).
+const useHeaderHeightVar = (ref) => {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const root = document.documentElement;
+    const update = () => {
+      const height = Math.ceil(el.getBoundingClientRect().height);
+      const fixed = getComputedStyle(el).position === 'fixed';
+      root.style.setProperty('--header-h', `${height}px`);
+      root.style.setProperty('--header-overlap', fixed ? `${height}px` : '0px');
+    };
+    update();
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
+    // border-box: высота шапки меняется и от padding (брейкпоинты), а не только от содержимого
+    observer?.observe(el, { box: 'border-box' });
+    // position меняется на брейкпоинте 580px — ловим и изменение окна
+    window.addEventListener('resize', update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [ref]);
+};
+
 const Header = () => {
   const auth = useAuth();
   const { t } = useLang()
   const [menu, setMenu] = useState(false);
+  const headerRef = useRef(null);
+  useHeaderHeightVar(headerRef);
   const { me, token, logout } = auth || {}; // безопасная деструктуризация
   const { lang, changeLanguage } = useLanguage();
 
@@ -45,7 +78,7 @@ const Header = () => {
   } : null;
 
   return (
-    <header className={style.header}>
+    <header className={style.header} ref={headerRef}>
       <div className={menu ? style.container : style.container}>
         <nav className={style.nav}>
           <Link to={`/Home?lang=${lang}`} className={style.navLogoLink}>

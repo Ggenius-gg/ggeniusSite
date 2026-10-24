@@ -1306,6 +1306,27 @@ input {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+  aspect-ratio: 1/1;
+}
+
+/* Телефон: длинный ник не должен выталкивать бургер за край экрана —
+   ник обрезается многоточием, отступы кнопки входа меньше. */
+@media screen and (max-width: 580px) {
+  .navLinkLogin {
+    padding: 0;
+    font-size: 16px;
+  }
+  .navLinkLoginUsers {
+    gap: 10px;
+  }
+  .navLinkLoginUsers span {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .navMenuActiveLine,
@@ -2171,6 +2192,8 @@ input {
   width: 132px;
   height: 132px;
   border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
   stroke-width: 3px;
   aspect-ratio: 1/1;
   stroke: #0064ff;
@@ -2713,6 +2736,9 @@ input {
   .profileInnerUserInfoImg {
     width: 156px;
     height: 156px;
+    flex-shrink: 0;
+    object-fit: cover;
+    aspect-ratio: 1/1;
   }
   .profileInnerUserInfoTxt {
     text-align: center;
