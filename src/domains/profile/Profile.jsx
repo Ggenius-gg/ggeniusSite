@@ -1,17 +1,18 @@
+// /profile — «Витрина игрока»: свой профиль из GET /api/site/me (нужен вход).
+// Только чтение: без кошелька и покупок. Разметка статистики — прежняя (поля совпадают).
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import style from '../../shared/styles/index.module.css';
+import ui from '../../shared/styles/site.module.css';
 import { useAuth } from '../../domains/auth/useAuth';
 import { useLang } from '../../shared/i18n/hooks/useLang';
+import { BOT_LOGIN_URL, BOT_REGISTER_URL } from '../../shared/api/site';
+import { clampPercent, formatDate, orDash } from '../../shared/utils/format';
+import StatusBadge from '../../shared/components/StatusBadge';
+import Avatar from '../../shared/components/Avatar';
 
 
 // ------------ UTILS -----------
-import { parseRoles } from './utils/parseRoles';
-import { useProfile } from './hooks/useProfile';
-import { WHITE_LIST } from './constants/whiteList';
-import { filterOrders } from './utils/filterOrders';
-// import ProfileLogout from './components/ProfileLogout';
-// import ProfileView from './components/ProfileView';
-import { calcMaxPercent } from './utils/calcMaxPercent';
 import { calcPercent } from './utils/calcPercent';
 
 
@@ -22,72 +23,156 @@ import iconRole from './img/icon-role.svg'
 import iconLocation from './img/icon-location.svg'
 import iconInfo from './img/icon-info.svg'
 
+// 57.3 → «57%», null → «—»
+const pct = (value) => (value === null || value === undefined ? '—' : `${Math.round(value)}%`);
 
-const Profile = () => {
-  const auth = useAuth();
-  const { user } = auth || {};
-  const [nav, setNav] = useState(1)
-  const { balance } = useProfile();
-  // const [history, setHistory] = useState([])
-  const [product, setProduct] = useState([])
+// Состояния без профиля: не вошёл / грузим / сервер недоступен
+const ProfileMessage = ({ text, action }) => (
+  <section className={ui.page}>
+    <div className={ui.container}>
+      <div className={ui.card} style={{ maxWidth: 560 }}>
+        <p className={ui.text}>{text}</p>
+        {action}
+      </div>
+    </div>
+  </section>
+);
 
-  const [search, setSearch] = useState('')
-  const { t } = useLang()
+// Человек вошёл, но игровой профиль MLBB ещё не зарегистрирован
+const RegisterInBot = ({ url }) => {
+  const { t } = useLang();
+  return (
+    <div className={ui.card}>
+      <h3 className={ui.cardTitle}>{t('profileNoMlbbTitle')}</h3>
+      <p className={ui.text}>{t('profileNoMlbbText')}</p>
+      <a className={ui.btnPrimary} href={url || BOT_REGISTER_URL} target="_blank" rel="noreferrer">
+        {t('profileRegisterInBot')}
+      </a>
+    </div>
+  );
+};
 
+const HeroesAndSquad = ({ me }) => {
+  const { t } = useLang();
+  const heroes = me.top_heroes || [];
+  return (
+    <div className={ui.tabPanel}>
+      <h3 className={ui.cardTitle}>{t('profileTopHeroes')}</h3>
+      {heroes.length ? (
+        <div className={ui.heroes}>
+          {heroes.map((hero) => (
+            <div className={ui.heroCard} key={hero.slot}>
+              {hero.image_url ? (
+                <img className={ui.heroImg} src={hero.image_url} alt="" loading="lazy" />
+              ) : (
+                <div className={ui.heroImg} />
+              )}
+              <b>{hero.name}</b>
+              <div className={ui.muted}>
+                {hero.matches != null && `${hero.matches} ${t('matchesShort')}`}
+                {hero.win_rate != null && ` · WR ${Math.round(hero.win_rate)}%`}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className={ui.muted}>{t('profileNoHeroes')}</p>
+      )}
 
-  // const [btn, setBtn] = useState(3)
-
-  // const procent = (value) => {
-  //   const percent = (value / 10000) * 100
-  //   return percent.toFixed(2)
-  // }
-
-  // const procentMax = (value) => {
-  //   const percent = (value / 20000) * 100
-  //   return percent.toFixed(2)
-  // }
-
-  if (!user) return (
-    <section className={style.donate}>
-      <div className={style.container}>
-        <div className={style.downloads}>
-          <div className={style.profileLogOut}>
-            {t('profileLogOut')}
+      <h3 className={ui.cardTitle} style={{ marginTop: 32 }}>{t('profileSquad')}</h3>
+      {me.squad ? (
+        <div className={ui.person} style={{ maxWidth: 420 }}>
+          <Avatar src={me.squad.logo_url} name={me.squad.name} />
+          <div>
+            <div className={ui.personName}>
+              {me.squad.name}
+              {me.squad.tag ? ` [${me.squad.tag}]` : ''}
+            </div>
+            <div className={ui.muted}>
+              {me.squad.member_count != null && `${t('squadMembers')}: ${me.squad.member_count}`}
+              {me.squad.user_role ? ` · ${me.squad.user_role === 'captain' ? t('captain') : me.squad.user_role}` : ''}
+            </div>
           </div>
         </div>
+      ) : (
+        <p className={ui.muted}>{t('profileNoSquad')}</p>
+      )}
+    </div>
+  );
+};
+
+const MyTournaments = ({ me }) => {
+  const { t, i18n } = useLang();
+  const tours = me.tournaments || {};
+  const recent = tours.recent || [];
+  return (
+    <div className={ui.tabPanel}>
+      <div className={ui.facts}>
+        <div className={ui.fact}>
+          <span className={ui.factLabel}>{t('profileTournamentsTotal')}</span>
+          <span className={ui.factValue}>{orDash(tours.total_tournaments)}</span>
+        </div>
+        <div className={ui.fact}>
+          <span className={ui.factLabel}>{t('profileTournamentsActive')}</span>
+          <span className={ui.factValue}>{orDash(tours.active_tournaments)}</span>
+        </div>
+        <div className={ui.fact}>
+          <span className={ui.factLabel}>{t('profileTournamentsCompleted')}</span>
+          <span className={ui.factValue}>{orDash(tours.completed_tournaments)}</span>
+        </div>
       </div>
-    </section>
+      {recent.length ? (
+        <div className={ui.list}>
+          {recent.map((row) => (
+            <Link key={row.id} to={`/tournament/${row.id}`} className={ui.row}>
+              <span className={ui.sideName}>
+                <Avatar small src={row.logo_url} name={row.title} />
+                {row.title}
+              </span>
+              <span className={ui.meta}>
+                {row.format && <span>{row.format}</span>}
+                {formatDate(row.start_time, i18n.language) && <span>{formatDate(row.start_time, i18n.language)}</span>}
+                <StatusBadge status={row.status} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className={ui.muted}>
+          {t('profileNoTournaments')} <Link to="/Tourn">{t('navListItemLinkTourn')}</Link>
+        </p>
+      )}
+    </div>
   );
-
-  const roles = parseRoles(user.main_roles);
-  const arr = JSON.parse(roles)
-
-  // Дата створення
-  // const rawDate = user.created_at
-  // const date = new Date(rawDate)
+};
 
 
+const Profile = () => {
+  const { me, status, token, reload } = useAuth() || {};
+  const [nav, setNav] = useState(1)
+  const { t } = useLang()
 
+  if (!token) {
+    return (
+      <ProfileMessage
+        text={t('profileSignInHint')}
+        action={<a className={ui.btnPrimary} href={BOT_LOGIN_URL}>{t('navLogin')}</a>}
+      />
+    );
+  }
+  if (status === 'error') {
+    return (
+      <ProfileMessage
+        text={t('stateNetwork')}
+        action={<button type="button" className={ui.btnGhost} onClick={reload}>{t('authRetry')}</button>}
+      />
+    );
+  }
+  if (!me) return <ProfileMessage text={t('stateLoading')} />;
 
-  // useEffect(() => {
-  //   fetch('https://ggenius-api.onrender.com/pay/history.php')
-  //     .then(g => g.json())
-  //     .then(data => setHistory(data.orders))
-  //     .catch(err => console.error(err))
-  // }, [])
-
-  // useEffect(() => {
-  //   fetch('https://ggenius-api.onrender.com/pay/productDetail.php')
-  //     .then(g => g.json())
-  //     .then(data => setProduct(data.Variation))
-  //     .catch(err => console.error(err))
-  // }, [])
-  // console.log(product);
-
-
-  const selected = WHITE_LIST.includes(
-    String(user.telegram_id)
-  );
+  const { identity, mlbb, stats } = me;
+  const name = identity.nickname || identity.display_name || identity.telegram_username || '—';
+  const roles = mlbb.main_roles || [];
 
   return <>
     <section className={style.profile}>
@@ -99,33 +184,34 @@ const Profile = () => {
               <img className={style.profileInnerUserInfoBackMob} src={backMob} alt="" />
 
               <div className={style.profileInnerUserInfoAvatarEff}>
-                <img src={user.avatar_permanent_url !== null ? user.avatar_permanent_url : ''} alt={user.avatar_permanent_url !== null ? 'avatar' : ''} className={style.profileInnerUserInfoImg} />
+                {identity.avatar_url
+                  ? <img src={identity.avatar_url} alt="avatar" className={style.profileInnerUserInfoImg} />
+                  : <span className={style.profileInnerUserInfoImg} />}
                 <span className={style.profileInnerUserInfoAvatarEff1}></span>
               </div>
               <div className={style.profileInnerUserInfoTxt}>
                 <h1 className={style.profileInnerUserInfoTitle}>
-                  {user.nickname}
+                  {name}
                 </h1>
-                <p className={style.profileInnerUserInfoRank}>
-                  <img src={iconId} alt="" /> {t('profileInnerUserInfoRankId')} {user.player_id}({user.server_id})
-                </p>
-                <p className={style.profileInnerUserInfoRank}>
-                  <img src={iconRole} alt="" /> {t('profileInnerUserInfoRankRole')} {arr !== null ? arr.map((item, ind) => (
-                    <span key={ind}>
-                      {item}{ind < arr.length - 1 ? ', ' : ''}
-                    </span>
-                  )) : 'Завантажте скрин  у бота'}
-                </p>
-                <p className={style.profileInnerUserInfoRank}>
-                  <img src={iconLocation} alt="icon location" /> {t('profileInnerUserInfoRankLocation')} {user.location !== null ? user.location : 'Завантажте скрин  у бота'}
-                </p>
-                <div className={selected ? style.profileInnerUserInfoMoo : style.profileInnerUserInfoMooDis}>
-                  <h4 className={style.profileInnerUserInfoMooTitle}>
-                    VIPayment:
-                  </h4>
-                  <p className={style.profileInnerUserInfoMooVal}>
-                    {balance.balance} {balance.currency} Rp
+                {identity.mlbb_registered ? <>
+                  <p className={style.profileInnerUserInfoRank}>
+                    <img src={iconId} alt="" /> {t('profileInnerUserInfoRankId')} {orDash(mlbb.player_id)}{mlbb.server_id ? ` (${mlbb.server_id})` : ''}
                   </p>
+                  <p className={style.profileInnerUserInfoRank}>
+                    <img src={iconRole} alt="" /> {t('profileInnerUserInfoRankRole')} {roles.length ? roles.join(', ') : '—'}
+                  </p>
+                  <p className={style.profileInnerUserInfoRank}>
+                    <img src={iconLocation} alt="" /> {t('profileSquad')}: {me.squad ? me.squad.name : '—'}
+                  </p>
+                </> : (
+                  <p className={style.profileInnerUserInfoRank}>
+                    {identity.telegram_username ? `@${identity.telegram_username}` : ''}
+                  </p>
+                )}
+                <div className={ui.actions} style={{ margin: '10px 0 0' }}>
+                  <a className={ui.btnPrimary} style={{ padding: '10px 22px' }} href={me.open_in_telegram_url} target="_blank" rel="noreferrer">
+                    {t('openInTelegram')}
+                  </a>
                 </div>
               </div>
             </div>
@@ -143,19 +229,12 @@ const Profile = () => {
                 </li>
                 <li className={nav == 2 ? style.profileInnerHeaderListItem : style.profileInnerHeaderListItemOff}
                   onClick={() => setNav(2)}>
-                  {t('profileInnerHeaderListItemDetail')}
+                  {t('profileTabHeroes')}
                 </li>
                 <li className={nav == 3 ? style.profileInnerHeaderListItem : style.profileInnerHeaderListItemOff}
                   onClick={() => setNav(3)}>
-                  {t('profileInnerHeaderListItemSettings')}
+                  {t('profileTabTournaments')}
                 </li>
-                {selected ? (
-                  <li className={nav === 4 ? style.profileInnerHeaderListItem : style.profileInnerHeaderListItemOff}
-                    onClick={() => setNav(4)}>
-                    {t('profileInnerHeaderListItemAdmin')}
-                  </li>
-                ) : ''}
-
               </ul>
             </div>
 
@@ -166,29 +245,10 @@ const Profile = () => {
                   <h3 className={style.profileInnerHeaderInfo1NavTitle}>
                     {t('profileInnerHeaderInfoNavTitle')}
                   </h3>
-
-                  {/* <ul className={style.profileInnerHeaderInfo1NavList}>
-                    <li className={style.profileInnerHeaderInfo1NavListItem}>
-                      <button className={btn === 1 ? style.profileInnerHeaderInfo1NavListItemBtnActive : style.profileInnerHeaderInfo1NavListItemBtn}
-                        onClick={() => setBtn(1)}>
-                        {t('profileInnerHeaderInfoNavListItemBtn30Days')}
-                      </button>
-                    </li>
-                    <li className={style.profileInnerHeaderInfo1NavListItem}>
-                      <button className={btn === 2 ? style.profileInnerHeaderInfo1NavListItemBtnActive : style.profileInnerHeaderInfo1NavListItemBtn}
-                        onClick={() => setBtn(2)}>
-                        {t('profileInnerHeaderInfoNavListItemBtnSeason')}
-                      </button>
-                    </li>
-                    <li className={style.profileInnerHeaderInfo1NavListItem}>
-                      <button className={btn === 3 ? style.profileInnerHeaderInfo1NavListItemBtnActive : style.profileInnerHeaderInfo1NavListItemBtn}
-                        onClick={() => setBtn(3)}>
-                        {t('profileInnerHeaderInfoNavListItemBtnTotal')}
-                      </button>
-                    </li>
-                  </ul> */}
                 </div>
 
+                {/* Без игрового профиля MLBB статистики нет — предлагаем регистрацию в боте */}
+                {!identity.mlbb_registered ? <RegisterInBot url={me.register_in_bot_url} /> : <>
                 {/* -------------------- ЗА ВЕСЬ ЧАС -------------------- */}
                 <div className={style.profileInnerHeaderInfo1Total}>
                   <div className={style.profileInnerHeaderInfo1TotalStat}>
@@ -208,7 +268,7 @@ const Profile = () => {
                                   {t('profileInnerHeaderInfo1TotalStatListItemTitleTotalMatches')}
                                 </h4>
                                 <p className={style.profileInnerHeaderInfo1TotalStatListItemSub}>
-                                  {user.total_matches}
+                                  {orDash(stats.total_matches)}
                                 </p>
                               </div>
                             </li>
@@ -219,7 +279,7 @@ const Profile = () => {
                                   {t('profileInnerHeaderInfo1TotalStatListItemTitleMaksMinRank')}
                                 </h4>
                                 <p className={style.profileInnerHeaderInfo1TotalStatListItemSub}>
-                                  {user.current_rank}
+                                  {orDash(mlbb.current_rank)}
                                 </p>
                               </div>
                             </li>
@@ -230,7 +290,7 @@ const Profile = () => {
                                   {t('profileInnerHeaderInfo1TotalStatListItemTitleMaksMaksRank')}
                                 </h4>
                                 <p className={style.profileInnerHeaderInfo1TotalStatListItemSub}>
-                                  {user.highest_rank}
+                                  {orDash(mlbb.highest_rank)}
 
                                 </p>
                               </div>
@@ -252,7 +312,7 @@ const Profile = () => {
                                 </h4>
                               </div>
                               <p className={style.profileInnerHeaderInfo1TotalStatListItemSubDet}>
-                                {user.kda_ratio}
+                                {orDash(stats.kda_ratio, 2)}
                               </p>
                             </li>
                             <li className={style.profileInnerHeaderInfo1TotalStatListItemDet}>
@@ -263,18 +323,18 @@ const Profile = () => {
                                 </h4>
                               </div>
                               <p className={style.profileInnerHeaderInfo1TotalStatListItemSubDet}>
-                                {user.avg_deaths_per_match}
+                                {orDash(stats.avg_deaths_per_match, 1)}
                               </p>
                             </li>
                             <li className={style.profileInnerHeaderInfo1TotalStatListItemDet}>
                               <div className={style.profileInnerHeaderInfo1TotalStatListItemHed}>
                                 <img src={iconInfo} alt="" className={style.profileInnerHeaderInfo1TotalStatListItemImgDet} />
                                 <h4 className={style.profileInnerHeaderInfo1TotalStatListItemTitle}>
-                                  {t('profileInnerHeaderInfo1TotalStatListItemTitleHelp')}
+                                  {t('profileStatWinRate')}
                                 </h4>
                               </div>
                               <p className={style.profileInnerHeaderInfo1TotalStatListItemSubDet}>
-                                {user.most_assists_in_one_game}
+                                {pct(stats.win_rate)}
                               </p>
                             </li>
                           </ul>
@@ -297,17 +357,17 @@ const Profile = () => {
                                   </h5>
                                 </div>
                                 <p className={style.profileInnerEconomyListItemSubGoldMob}>
-                                  {user.avg_gold_per_min}
+                                  {orDash(stats.avg_gold_per_min, 0)}
                                 </p>
                               </div>
                               <div className={style.profileInnerEconomyListItemBack}>
-                                <div className={style.profileInnerEconomyListItemBackStroke} style={{ '--value': calcPercent(user.avg_gold_per_min) }}>
+                                <div className={style.profileInnerEconomyListItemBackStroke} style={{ '--value': calcPercent(stats.avg_gold_per_min ?? 0) }}>
                                   <span className={style.profileInnerEconomyListItemBackStrokeInfo}>
                                   </span>
                                 </div>
                               </div>
                               <p className={style.profileInnerEconomyListItemSubGold}>
-                                {user.avg_gold_per_min}
+                                {orDash(stats.avg_gold_per_min, 0)}
                               </p>
                             </li>
 
@@ -322,17 +382,17 @@ const Profile = () => {
                                   </h5>
                                 </div>
                                 <p className={style.profileInnerEconomyListItemSubDMGMob}>
-                                  {user.avg_hero_dmg_per_min}
+                                  {orDash(stats.avg_hero_dmg_per_min, 0)}
                                 </p>
                               </div>
                               <div className={style.profileInnerEconomyListItemBack}>
-                                <div className={style.profileInnerEconomyListItemBackStroke} style={{ '--value': calcPercent(user.avg_hero_dmg_per_min) }}>
+                                <div className={style.profileInnerEconomyListItemBackStroke} style={{ '--value': calcPercent(stats.avg_hero_dmg_per_min ?? 0) }}>
                                   <span className={style.profileInnerEconomyListItemBackStrokeInfo}>
                                   </span>
                                 </div>
                               </div>
                               <p className={style.profileInnerEconomyListItemSubDMG}>
-                                {user.avg_hero_dmg_per_min}
+                                {orDash(stats.avg_hero_dmg_per_min, 0)}
                               </p>
                             </li>
                             {/* turret DMG */}
@@ -342,20 +402,20 @@ const Profile = () => {
 
                                   <img src={iconInfo} alt="icon" className={style.profileInnerEconomyListItemHeadsImg} />
                                   <h5 className={style.profileInnerEconomyListItemHeadsTitle}>
-                                    {t('profileInnerEconomyListItemHeadsTitleCurDmg')}
+                                    {t('profileStatTurretDmg')}
                                   </h5>
                                 </div>
                                 <p className={style.profileInnerEconomyListItemSubTurDMGMob}>
-                                  {user.avg_turret_dmg_per_match}
+                                  {orDash(stats.avg_turret_dmg_per_match, 0)}
                                 </p>
                               </div>
                               <div className={style.profileInnerEconomyListItemBack} >
-                                <div className={style.profileInnerEconomyListItemBackStroke} style={{ '--value': calcPercent(user.avg_turret_dmg_per_match) }}>
+                                <div className={style.profileInnerEconomyListItemBackStroke} style={{ '--value': calcPercent(stats.avg_turret_dmg_per_match ?? 0) }}>
 
                                 </div>
                               </div>
                               <p className={style.profileInnerEconomyListItemSubTurDMG}>
-                                {user.avg_turret_dmg_per_match}
+                                {orDash(stats.avg_turret_dmg_per_match, 0)}
                               </p>
                             </li>
                           </ul>
@@ -367,7 +427,7 @@ const Profile = () => {
                         {/* -------------------- СРЕДНЕЕ -------------------- */}
                         <div className={style.profileInnerTotalMatchesАverage}>
                           <h5 className={style.profileInnerTotalMatchesАverageTitle}>
-                            {t('profileInnerTotalMatchesАverageTitle')}
+                            {t('profileStatRatesTitle')}
                           </h5>
 
                           <ul className={style.profileInnerTotalMatchesАverageList}>
@@ -376,15 +436,15 @@ const Profile = () => {
                                 <span className={style.profileInnerTotalMatchesАverageListItemHed}>
                                   <img src={iconInfo} className={style.profileInnerTotalMatchesАverageListItemHedImg} alt="" />
                                   <h5 className={style.profileInnerTotalMatchesАverageListItemHeadTitle}>
-                                    {t('profileInnerTotalMatchesАverageListItemHeadTitleGold')}
+                                    {t('profileStatWinRate')}
                                   </h5>
                                 </span>
                                 <p className={style.profileInnerTotalMatchesАverageListItemHedSub}>
-                                  {user.highest_gold_per_min}
+                                  {pct(stats.win_rate)}
                                 </p>
                               </div>
 
-                              <div className={style.profileInnerTotalMatchesАverageListItemBack} style={{ '--valueMax': calcMaxPercent(user.highest_gold_per_min) }}>
+                              <div className={style.profileInnerTotalMatchesАverageListItemBack} style={{ '--valueMax': clampPercent(stats.win_rate) }}>
                                 <span></span>
                               </div>
                             </li>
@@ -393,14 +453,14 @@ const Profile = () => {
                                 <span className={style.profileInnerTotalMatchesАverageListItemHed}>
                                   <img src={iconInfo} className={style.profileInnerTotalMatchesАverageListItemHedImg} alt="icon" />
                                   <h5 className={style.profileInnerTotalMatchesАverageListItemHeadTitle}>
-                                    {t('profileInnerTotalMatchesАverageListItemHeadTitleDMG')}
+                                    {t('profileStatMvpRate')}
                                   </h5>
                                 </span>
                                 <p className={style.profileInnerTotalMatchesАverageListItemHedSub}>
-                                  {user.highest_dmg_per_min}
+                                  {pct(stats.mvp_rate_pct)}
                                 </p>
                               </div>
-                              <div className={style.profileInnerTotalMatchesАverageListItemBack} style={{ '--valueMax': calcMaxPercent(user.highest_dmg_per_min) }}>
+                              <div className={style.profileInnerTotalMatchesАverageListItemBack} style={{ '--valueMax': clampPercent(stats.mvp_rate_pct) }}>
                                 <span></span>
                               </div>
                             </li>
@@ -410,14 +470,14 @@ const Profile = () => {
 
                                   <img src={iconInfo} className={style.profileInnerTotalMatchesАverageListItemHedImg} alt="icon" />
                                   <h5 className={style.profileInnerTotalMatchesАverageListItemHeadTitle}>
-                                    {t('profileInnerTotalMatchesАverageListItemHeadTitleTurDMG')}
+                                    {t('profileStatTeamfight')}
                                   </h5>
                                 </span>
                                 <p className={style.profileInnerTotalMatchesАverageListItemHedSub}>
-                                  {user.highest_dmg_taken_per_min}
+                                  {pct(stats.teamfight_participation_rate)}
                                 </p>
                               </div>
-                              <div className={style.profileInnerTotalMatchesАverageListItemBack} style={{ '--valueMax': calcMaxPercent(user.highest_dmg_taken_per_min) }}>
+                              <div className={style.profileInnerTotalMatchesАverageListItemBack} style={{ '--valueMax': clampPercent(stats.teamfight_participation_rate) }}>
                                 <span></span>
                               </div>
                             </li>
@@ -438,7 +498,7 @@ const Profile = () => {
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.first_blood_count}
+                                  x {orDash(stats.first_blood_count)}
                                 </p>
                               </li>
                               <li className={style.profileInnerTotalMatchesAchievementListItem}>
@@ -449,7 +509,7 @@ const Profile = () => {
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.double_kill_count}
+                                  x {orDash(stats.double_kill_count)}
                                 </p>
                               </li>
                               <li className={style.profileInnerTotalMatchesAchievementListItem}>
@@ -460,7 +520,7 @@ const Profile = () => {
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.triple_kill_count}
+                                  x {orDash(stats.triple_kill_count)}
                                 </p>
                               </li>
                               <li className={style.profileInnerTotalMatchesAchievementListItem}>
@@ -471,7 +531,7 @@ const Profile = () => {
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.legendary_count}
+                                  x {orDash(stats.legendary_count)}
                                 </p>
                               </li>
                               <li className={style.profileInnerTotalMatchesAchievementListItem}>
@@ -482,7 +542,7 @@ const Profile = () => {
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.maniac_count}
+                                  x {orDash(stats.maniac_count)}
                                 </p>
                               </li>
                               <li className={style.profileInnerTotalMatchesAchievementListItem}>
@@ -493,18 +553,18 @@ const Profile = () => {
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.mvp_count}
+                                  x {orDash(stats.mvp_count)}
                                 </p>
                               </li>
                               <li className={style.profileInnerTotalMatchesAchievementListItem}>
                                 <div className={style.profileInnerTotalMatchesAchievementListItemHead}>
                                   <img src={iconInfo} alt="icon" className={style.profileInnerTotalMatchesAchievementListItemHeadImg} />
                                   <h6 className={style.profileInnerTotalMatchesAchievementListItemHeadTitle}>
-                                    {t('profileInnerTotalMatchesAchievementListItemHeadTitleMVPLoss')}
+                                    {t('profileStatSavage')}
                                   </h6>
                                 </div>
                                 <p className={style.profileInnerTotalMatchesAchievementListItemSub}>
-                                  x {user.mvp_loss_count}
+                                  x {orDash(stats.savage_count)}
                                 </p>
                               </li>
                             </ul>
@@ -514,100 +574,18 @@ const Profile = () => {
                     </div>
                   </div>
                 </div>
+                </>}
               </div>
 
-              {/*-------------------- ДЕТАЛІ ГРИ -------------------- */}
+              {/*-------------------- ГЕРОИ И КОМАНДА -------------------- */}
               <div className={nav == 2 ? style.profileInnerHeaderInfo : style.profileInnerHeaderInfoDis}>
-                <div className={style.profileInnerHeaderInfo2Nav}>
-                  В Розробці!
-                </div>
+                {identity.mlbb_registered ? <HeroesAndSquad me={me} /> : <RegisterInBot url={me.register_in_bot_url} />}
               </div>
 
-              {/* -------------------- НАЛАШТУВАННЯ -------------------- */}
+              {/* -------------------- МОИ ТУРНИРЫ -------------------- */}
               <div className={nav == 3 ? style.profileInnerHeaderInfo : style.profileInnerHeaderInfoDis}>
-                <div className={style.profileInnerHeaderInfo3Nav}>
-                  В Розробці!
-                </div>
+                <MyTournaments me={me} />
               </div>
-              {/* -------------------- ADMIN PANEL -------------------- */}
-              {selected && (
-                <div className={nav == 4 ? style.profileInnerHeaderInfo : style.profileInnerHeaderInfoDis}>
-                  <div className={style.profileInnerHeaderInfo4Nav}>
-                    <div>
-                      <input type="text" className={style.profileInnerHeaderInfo4NavInp} value={search} onChange={e => setSearch(e.target.value)} placeholder='Пошук по Ордену' />
-                      <ul className={style.profileInnerHeader4List}>
-                        {
-                          filterOrders.map(item => (
-                            <li className={style.profileInnerHeader4ListItem} key={item.order_id}>
-                              <h5 className={style.profileInnerHeader4ListItemTitle}>
-                                order ID: {item.order_id}
-                              </h5>
-                              <p className={style.profileInnerHeader4ListItemDate}>
-                                {item.date_created}
-                              </p>
-                              <p className={style.profileInnerHeader4ListItemDate}>
-                                Status: {item.status}
-                              </p>
-                              <p className={style.profileInnerHeader4ListItemDate}>
-                                Total: {item.total} {item.currency}
-                              </p>
-
-                              <div className={style.profileInnerHeader4ListItemCont}>
-                                <h4 className={style.profileInnerHeader4ListItemContTitle}>
-                                  Producr info:
-                                </h4>
-                                {
-                                  item.items.map(i => (<>
-
-                                    <h5 className={style.profileInnerHeader4ListItemTitle}>
-                                      Name: {i.product}
-                                    </h5>
-                                    <p className={style.profileInnerHeader4ListItemSub}>
-                                      Quantity: {i.quantity}
-                                    </p>
-                                  </>
-
-                                  ))
-                                }
-                              </div>
-                            </li>
-                          ))
-                        }
-                      </ul>
-                    </div>
-
-                    <div className={style.profileInnerHeaderInfoProd}>
-                      <h3 className={style.profileInnerHeaderInfoProdTitle}>
-                        {product.Product_Name}
-                      </h3>
-                      <div>
-                        <input type="text" className={style.profileInnerHeaderInfo4NavInp} />
-                        <ul className={style.profileInnerHeaderInfoProdList}>
-                          {
-                            product.map(item => (
-                              <li className={style.profileInnerHeaderInfoProdListItem} key={item.variation_id}>
-                                <h4 className={style.profileInnerHeaderInfoProdListItemTitle}>
-                                  {item.variation_name}
-                                </h4>
-                                <p className={style.profileInnerHeaderInfoProdListItemSub}>
-                                  ID: {item.variation_id}
-                                </p>
-                                <p className={style.profileInnerHeaderInfoProdListItemSub}>
-                                  Price: {item.variation_price}
-                                </p>
-                                <p className={style.profileInnerHeaderInfoProdListItemSub}>
-                                  Stock Status: {item.stock_status}
-                                </p>
-                              </li>
-                            ))
-                          }
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              )}
             </div>
           </div>
         </div>

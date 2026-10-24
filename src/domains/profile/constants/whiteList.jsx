@@ -1,1 +1,0 @@
-export const WHITE_LIST = ['756209157'];
