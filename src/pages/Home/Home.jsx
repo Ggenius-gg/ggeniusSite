@@ -1,7 +1,6 @@
 import style from '../../shared/styles/index.module.css';
 import { Link } from 'react-router-dom'
 import Marquee from '../../shared/hooks/Marquee'
-import { useRef, useState, useEffect } from 'react';
 // IMAGES
 import back from './img/back.webp'
 import sue from './img/sue.webp'
@@ -33,48 +32,6 @@ import { useLang } from '../../shared/i18n/hooks/useLang';
 const Home = () => {
 
   const { t } = useLang();
-  const [chats, setChats] = useState([])
-  const [chatInfo, setChatInfo] = useState([])
-
-  useEffect(() => {
-    if (!chats.length) return;
-
-    Promise.all(
-      chats.map(chat =>
-        fetch(`https://ggenius-api.onrender.com/mlbb/get_chat_info.php?chat_id=${chat.chat_id}`)
-          .then(res => res.json())
-      )
-    )
-      .then(data => setChatInfo(data))
-      .catch(console.error);
-
-  }, [chats]);
-
-  // useEffect(() => {
-  //   fetch('https://ggenius-api.onrender.com/mlbb/get_posts.php?table=chat_members')
-  //     .then(g => g.json())
-  //     .then(data => setChats(data))
-  //     .catch(err => console.error(err))
-  // }, [])
-
-  // const hiddenChats = [
-  //   -1001810336177,
-  //   -1001635885431,
-  //   -5058351939
-  // ]
-
-  // const visibleChats = chatInfo.filter((chat, index, self) =>
-  //   index === self.findIndex(c => c.id === chat.id) &&
-  //   !hiddenChats.includes(chat.id)
-  // );
-
-  // chatInfo.forEach(chat => {
-  //   console.log(chat.id, typeof chat.id);
-  // });
-
-  // console.log(chatInfo);
-  // console.log(chats);
-
   return <>
     <section className={style.home}>
       <img className={style.imgBack} src={back} alt="" />
