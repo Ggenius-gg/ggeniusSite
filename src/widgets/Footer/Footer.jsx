@@ -97,7 +97,7 @@ const Footer = () => {
 
           <div className={style.footerCopySubMob}>
             <div className={style.footerCopyMobLinc}>
-              <a href="https://ggenius.gg" className={style.footerCopyMobLincSite}>Ggenius</a>
+              <a href="https://ggenius.shop" className={style.footerCopyMobLincSite}>Ggenius</a>
               © 2024 by{" "}
               <a href="https://github.com/Nimarchik" className={style.footerCopyMobLincUser}>Ivanov Oleksii</a>
               is licensed under{" "}
@@ -126,7 +126,7 @@ const Footer = () => {
                 {t('footerCopySubMobOfer')}
               </NavLink>
               <div className={style.footerCopyMobLinc}>
-                <a href="https://ggenius.gg" className={style.footerCopyMobLincSite}>Ggenius</a>
+                <a href="https://ggenius.shop" className={style.footerCopyMobLincSite}>Ggenius</a>
                 © 2024 by{" "}
                 <a href="https://github.com/Nimarchik" className={style.footerCopyMobLincUser}>Ivanov Oleksii</a>
                 is licensed under{" "}
