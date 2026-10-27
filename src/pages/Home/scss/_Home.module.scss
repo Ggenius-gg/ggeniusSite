@@ -517,6 +517,87 @@
   width: 250px;
 }
 
+/* ---------- Ремонт: «Як це працює» (три шага) на 561–1700px ----------
+   Три картинки по 400px + две стрелки = 1360px не влезали в контейнер 1320px
+   (на 1366 «Крок 3» уезжал за край). Теперь шаги сжимаются пропорционально,
+   а до 900px встают в колонку, как на телефоне. Когда места хватает — как было. */
+@media screen and (min-width: 561px) {
+  .workInnerListItem {
+    flex: 0 1 400px;
+    min-width: 0;
+  }
+
+  .workInnerListSpan {
+    flex-shrink: 0;
+  }
+
+  .workInnerListItemGroupImg {
+    width: 100%;
+    height: auto;
+  }
+
+  .workInnerListItemGroupImgStartZoom,
+  .workInnerListItemGroupImgNextZoom,
+  .workInnerListItemGroupImgEndZoom {
+    width: 110.5%; /* 442px при картинке 400px */
+    height: auto;
+  }
+
+  .workInnerListItemGroupImgStartZoom,
+  .workInnerListItemGroupImgNextZoom {
+    bottom: 3.5%; /* 28px при высоте 802px */
+  }
+
+  .workInnerListItemGroupImgEndZoom {
+    bottom: 9.5%; /* 76px */
+  }
+
+  .workInnerListItemSub {
+    width: auto;
+    max-width: 400px;
+  }
+
+  .workInnerListItemSubEnd,
+  .workInnerListItemSubNext {
+    width: auto;
+    max-width: 250px;
+  }
+}
+
+/* Телефон: подписи шагов (400px) не шире экрана */
+@media screen and (max-width: 560px) {
+  .workInnerListItemSub,
+  .workInnerListItemSubNext,
+  .workInnerListItemSubEnd {
+    max-width: 100%;
+  }
+}
+
+/* ≤380px: карточки «Етап 1/2…» карты развития (250px рядом с дорогой 154px)
+   выходили за правый край на ~27px — делаем их уже */
+@media screen and (max-width: 380px) {
+  .progressInnerMapListMob .progressInnerMapListItem {
+    width: 215px;
+  }
+}
+
+@media screen and (min-width: 561px) and (max-width: 900px) {
+  .workInnerList {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .workInnerListItem {
+    flex: none;
+    width: 400px;
+    max-width: 100%;
+  }
+
+  .workInnerListSpan {
+    transform: rotate(90deg);
+  }
+}
+
 .progress {
   padding: 80px 0;
 }
@@ -676,6 +757,70 @@
   font-size: 13px;
   width: 100px;
   text-align: center
+}
+
+/* ---------- Ремонт: планшет и ноутбук (шире 560px) ---------- */
+/* герой: блок 1108px не шире экрана */
+.homeInnerContent {
+  max-width: 100%;
+}
+
+@media screen and (min-width: 561px) {
+  /* «Що таке GGenius»: карточки переносятся, а не уезжают за край */
+  .whatinnerList {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}
+
+/* Карта развития на 561–1100px: горизонтальная дорога 1680px не влезает —
+   показываем вертикальный вариант, как на телефоне, по центру */
+@media screen and (min-width: 561px) and (max-width: 1100px) {
+  .progressInnerMap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .progressInnerMapRoad,
+  .progressInnerMapList,
+  .progressInnerMapListTwo {
+    display: none;
+    visibility: hidden;
+  }
+
+  .progressInnerMapRoadMob {
+    display: block;
+    visibility: visible;
+    position: relative;
+    width: 154px;
+    height: 1365px;
+  }
+
+  .progressInnerMapListMob {
+    display: flex;
+    visibility: visible;
+    position: relative;
+    flex-direction: column;
+    height: 754px;
+    gap: 81px;
+    margin-top: 300px;
+    color: #fff;
+  }
+}
+
+/* блок «Партнерство» (580px от left: 64px) — не шире экрана на 561–660px */
+@media screen and (min-width: 561px) {
+  .partnersInnerCont {
+    max-width: calc(100% - 80px);
+  }
+}
+
+/* телефон: шаг не шире колонки, чтобы подпись (max-width: 100%) не была 400px */
+@media screen and (max-width: 560px) {
+  .workInnerListItem {
+    max-width: 100%;
+  }
 }
 
 @import './media.module';

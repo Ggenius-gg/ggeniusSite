@@ -243,9 +243,17 @@
   aspect-ratio: 1/1;
 }
 
-/* Телефон: длинный ник не должен выталкивать бургер за край экрана —
-   ник обрезается многоточием, отступы кнопки входа меньше. */
-@media screen and (max-width: 580px) {
+/* Длинный ник в шапке (ПК, когда вошёл) — многоточием, чтобы не уезжал за край */
+.navLinkLoginUsers span {
+  max-width: clamp(120px, 28vw - 190px, 260px); /* 1201px → 146px, 1366px → 192px, 1700px+ → 260px */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Бургер-режим шапки (≤1200px): длинный ник не должен выталкивать бургер
+   за край экрана — ник обрезается многоточием, отступы кнопки входа меньше. */
+@media screen and (max-width: 1200px) {
   .navLinkLogin {
     padding: 0;
     font-size: 16px;

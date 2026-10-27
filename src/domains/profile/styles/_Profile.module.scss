@@ -618,4 +618,57 @@
   border-radius: 12px;
 }
 
+/* ---------- Ремонт вёрстки профиля (шире 560px; телефонная вёрстка ниже не тронута) ----------
+   Раньше профиль на ПК был сеткой фиксированной ширины (~1700px): на 768–1366
+   правые колонки («Відсотки», «Досягнення») и часть карточек уезжали за край.
+   Теперь ряды переносятся, полоски сжимаются; когда места хватает — как было. */
+@media screen and (min-width: 561px) {
+  /* фон карточки игрока (картинка 1692px) — по ширине карточки, а не до края окна */
+  .profileInnerUserInfoBack {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left center;
+    border-radius: 16px;
+  }
+
+  .profileInnerHeaderGroups {
+    height: auto;
+    min-height: 900px;
+    min-width: 0;
+  }
+
+  /* активная вкладка — в потоке (высота по содержимому), скрытые — как раньше absolute */
+  .profileInnerHeaderInfo {
+    position: relative;
+    height: auto;
+    min-height: 800px;
+  }
+
+  .profileInnerHeaderInfo1TotalStatGroup,
+  .profileInnerHeaderInfo1TotalStatList,
+  .profileInnerHeaderInfo1TotalStatListDet {
+    flex-wrap: wrap;
+  }
+
+  .profileInnerHeaderInfo1TotalStatGroup > * {
+    min-width: 0;
+  }
+
+  .profileInnerEconomyListItem {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .profileInnerEconomyListItemBack {
+    flex: 1 1 300px;
+    max-width: 500px;
+  }
+
+  .profileInnerTotalMatchesАverageListItemBack,
+  .profileInnerTotalMatchesАverage {
+    max-width: 100%;
+  }
+}
+
 @import "./ProfileMedia.module";

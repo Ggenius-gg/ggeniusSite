@@ -128,6 +128,12 @@
   width: 350px;
 }
 
+/* не шире карточки: на 360px подписи пунктов обрезала иконка (блок 350px в карточке ~300px) */
+.workInnerListItemNav,
+.workInnerListItemNavSocial {
+  max-width: 100%;
+}
+
 .workInnerListItemNavSpan,
 .workInnerListItemNavSpanSoc {
   display: flex;
@@ -243,6 +249,11 @@
   position: absolute;
   filter: blur(25px);
   z-index: -1;
+}
+
+/* блок заголовка 700px — не шире экрана */
+.workInnerGroup {
+  max-width: 100%;
 }
 
 @import './media.module';

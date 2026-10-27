@@ -416,6 +416,11 @@ curl -H "ngrok-skip-browser-warning: 1" "https://federal-unstuck-cupid.ngrok-fre
 `Header.jsx` меряет шапку (`ResizeObserver`) и ставит на `:root` переменные
 `--header-h` (высота) и `--header-overlap` (высота, если шапка `position: fixed` —
 на экранах ≤580px, иначе `0px`). Старые страницы этой переменной не пользуются.
+
+Шапка: полное меню — на экранах шире 1200px; на 1200px и уже — бургер-меню
+(`_media.module.scss`, блок `max-width: 1200px`). `position: fixed` и мобильный
+логотип — только на ≤580px (блок `max-width: 580px`). `.container` не шире окна
+(`max-width: calc(100% - 10px)`).
 Из `index.module.scss` убраны импорты удалённых страниц магазина; в уже
 скомпилированном `index.module.css` их старые правила ещё лежат (ни на что не влияют)
 и исчезнут при следующей компиляции SCSS.
