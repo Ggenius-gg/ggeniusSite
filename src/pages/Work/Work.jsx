@@ -7,7 +7,6 @@ import sora from './img/sora.webp'
 import harli from './img/harli.png'
 import leyla from './img/leyla.png'
 import tourn from './img/tourn.png'
-import gord from './img/gord.png'
 import { useLang } from '../../shared/i18n/hooks/useLang'
 
 
@@ -133,30 +132,6 @@ const Work = () => {
               </span>
             </li>
 
-            {/* Pay */}
-            <li data-aos="fade-right" className={style.worksInnerListItemPay}>
-              <div className={style.workInnerListItemNav}>
-                <span className={style.workInnerListItemNavSpan}>
-                  <svg className={style.workInnerListItemNavSvg} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12ZM13 11V12V18V19H11V18V12V11H13ZM11 7V8H13V7V6V5H11V6V7Z" fill="#fff" />
-                  </svg>
-                  <h3 className={style.workInnerRegTitle}>
-                    {t('workInnerRegTitlePay')}
-                  </h3>
-                </span>
-                <p className={style.workInnerRegInf}>
-                  {t('workInnerRegInfPay')}
-                </p>
-                <p className={style.workInnerRegInf}>
-                  {t('workInnerRegInfPay2')}
-                </p>
-              </div>
-
-              <span className={style.sora}>
-                <img src={gord} alt="sora mlbb hero" className={style.workInnerGordImg} />
-                <img src={gord} alt="sora mlbb hero" className={style.workInnerGordImgBlur} />
-              </span>
-            </li>
           </ul>
         </div>
       </div>
