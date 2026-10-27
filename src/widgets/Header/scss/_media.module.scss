@@ -1,4 +1,10 @@
+// Шапка становится position: fixed, логотип — мобильным только на ≤580px.
 @media screen and (max-width: 580px) {
+  .nav {
+    padding: 0 5px;
+    width: 100%;
+  }
+
   .header {
     position: fixed;
     padding: 24px 0 16px 0;
@@ -25,6 +31,29 @@
     transition: all 0.4s;
   }
 
+
+  .mySwiper,
+  .progressInnerMapRoadMob,
+  .progressInnerMapListMob,
+  .footerCopySubMob,
+  .footerCopyListMob {
+    visibility: visible;
+  }
+
+  .footerCopySubMobs,
+  .progressInnerMapRoadMob {
+    display: block;
+  }
+
+  .progressInnerMapListMob,
+  .mySwiper {
+    display: flex;
+  }
+}
+
+// Бургер-меню шапки — до 1200px: на 581–1200 полное меню не влезало
+// (кнопка входа уезжала за правый край). Шапка при этом остаётся relative.
+@media screen and (max-width: 1200px) {
   .navLinkLoginListItemSubDis {
     visibility: hidden;
     opacity: 0;
@@ -45,11 +74,6 @@
     border-radius: 14px;
     box-shadow: 0 0 10px rgb(175, 2, 2);
     transition: all 0.4s;
-  }
-
-  .nav {
-    padding: 0 5px;
-    width: 100%;
   }
 
   .navGroup {
@@ -284,25 +308,12 @@
   .navLang,
   .navMenuDis,
   .menu,
-  .mySwiper,
-  .progressInnerMapRoadMob,
-  .progressInnerMapListMob,
-  .navMenuActiveLineSpan,
-  .footerCopySubMob,
-  .footerCopyListMob,
-  .mySwiper {
+  .navMenuActiveLineSpan {
     visibility: visible;
   }
 
-  .navMenuActiveLineSpan,
-  .footerCopySubMobs,
-  .progressInnerMapRoadMob {
+  .navMenuActiveLineSpan {
     display: block;
-  }
-
-  .progressInnerMapListMob,
-  .mySwiper {
-    display: flex;
   }
 }
 

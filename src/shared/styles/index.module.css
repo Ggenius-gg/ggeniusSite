@@ -73,6 +73,8 @@ input {
 
 .container {
   width: 1680px;
+  /* не шире окна: на 1401–1689px контейнер 1680px вылезал за край (брейкпоинты ниже — только до 1400px) */
+  max-width: calc(100% - 10px);
   margin: 0 auto;
   padding: 0 5px;
 }
@@ -679,6 +681,87 @@ input {
 .workInnerListItemSubEnd,
 .workInnerListItemSubNext {
   width: 250px;
+}
+
+/* ---------- Ремонт: «Як це працює» (три шага) на 561–1700px ----------
+   Три картинки по 400px + две стрелки = 1360px не влезали в контейнер 1320px
+   (на 1366 «Крок 3» уезжал за край). Теперь шаги сжимаются пропорционально,
+   а до 900px встают в колонку, как на телефоне. Когда места хватает — как было. */
+@media screen and (min-width: 561px) {
+  .workInnerListItem {
+    flex: 0 1 400px;
+    min-width: 0;
+  }
+
+  .workInnerListSpan {
+    flex-shrink: 0;
+  }
+
+  .workInnerListItemGroupImg {
+    width: 100%;
+    height: auto;
+  }
+
+  .workInnerListItemGroupImgStartZoom,
+  .workInnerListItemGroupImgNextZoom,
+  .workInnerListItemGroupImgEndZoom {
+    width: 110.5%; /* 442px при картинке 400px */
+    height: auto;
+  }
+
+  .workInnerListItemGroupImgStartZoom,
+  .workInnerListItemGroupImgNextZoom {
+    bottom: 3.5%; /* 28px при высоте 802px */
+  }
+
+  .workInnerListItemGroupImgEndZoom {
+    bottom: 9.5%; /* 76px */
+  }
+
+  .workInnerListItemSub {
+    width: auto;
+    max-width: 400px;
+  }
+
+  .workInnerListItemSubEnd,
+  .workInnerListItemSubNext {
+    width: auto;
+    max-width: 250px;
+  }
+}
+
+/* Телефон: подписи шагов (400px) не шире экрана */
+@media screen and (max-width: 560px) {
+  .workInnerListItemSub,
+  .workInnerListItemSubNext,
+  .workInnerListItemSubEnd {
+    max-width: 100%;
+  }
+}
+
+/* ≤380px: карточки «Етап 1/2…» карты развития (250px рядом с дорогой 154px)
+   выходили за правый край на ~27px — делаем их уже */
+@media screen and (max-width: 380px) {
+  .progressInnerMapListMob .progressInnerMapListItem {
+    width: 215px;
+  }
+}
+
+@media screen and (min-width: 561px) and (max-width: 900px) {
+  .workInnerList {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .workInnerListItem {
+    flex: none;
+    width: 400px;
+    max-width: 100%;
+  }
+
+  .workInnerListSpan {
+    transform: rotate(90deg);
+  }
 }
 
 .progress {
@@ -1311,9 +1394,17 @@ input {
   aspect-ratio: 1/1;
 }
 
-/* Телефон: длинный ник не должен выталкивать бургер за край экрана —
-   ник обрезается многоточием, отступы кнопки входа меньше. */
-@media screen and (max-width: 580px) {
+/* Длинный ник в шапке (ПК, когда вошёл) — многоточием, чтобы не уезжал за край */
+.navLinkLoginUsers span {
+  max-width: clamp(120px, 28vw - 190px, 260px); /* 1201px → 146px, 1366px → 192px, 1700px+ → 260px */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Бургер-режим шапки (≤1200px): длинный ник не должен выталкивать бургер
+   за край экрана — ник обрезается многоточием, отступы кнопки входа меньше. */
+@media screen and (max-width: 1200px) {
   .navLinkLogin {
     padding: 0;
     font-size: 16px;
@@ -1344,6 +1435,10 @@ input {
 }
 
 @media screen and (max-width: 580px) {
+  .nav {
+    padding: 0 5px;
+    width: 100%;
+  }
   .header {
     position: fixed;
     padding: 24px 0 16px 0;
@@ -1367,6 +1462,27 @@ input {
     height: 44px;
     transition: all 0.4s;
   }
+  .mySwiper,
+  .progressInnerMapRoadMob,
+  .progressInnerMapListMob,
+  .footerCopySubMob,
+  .footerCopyListMob,
+  .mySwiper {
+    visibility: visible;
+  }
+  .footerCopySubMobs,
+  .progressInnerMapRoadMob {
+    display: block;
+  }
+  .progressInnerMapListMob,
+  .mySwiper {
+    display: flex;
+  }
+}
+
+/* Бургер-меню шапки — до 1200px: на 581–1200 полное меню не влезало (кнопка входа уезжала за край).
+   Шапка при этом остаётся position: relative — fixed она только на ≤580px (блок ниже). */
+@media screen and (max-width: 1200px) {
   .navLinkLoginListItemSubDis {
     visibility: hidden;
     opacity: 0;
@@ -1386,10 +1502,6 @@ input {
     border-radius: 14px;
     box-shadow: 0 0 10px rgb(175, 2, 2);
     transition: all 0.4s;
-  }
-  .nav {
-    padding: 0 5px;
-    width: 100%;
   }
   .navGroup {
     display: flex;
@@ -1627,23 +1739,11 @@ input {
   .navLang,
   .navMenuDis,
   .menu,
-  .mySwiper,
-  .progressInnerMapRoadMob,
-  .progressInnerMapListMob,
-  .navMenuActiveLineSpan,
-  .footerCopySubMob,
-  .footerCopyListMob,
-  .mySwiper {
+  .navMenuActiveLineSpan {
     visibility: visible;
   }
-  .navMenuActiveLineSpan,
-  .footerCopySubMobs,
-  .progressInnerMapRoadMob {
+  .navMenuActiveLineSpan {
     display: block;
-  }
-  .progressInnerMapListMob,
-  .mySwiper {
-    display: flex;
   }
 }
 @media screen and (max-width: 540px) {
@@ -1978,8 +2078,16 @@ input {
 
 .aboutInnerCont {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* minmax(0, 1fr): колонки не растягиваются шире экрана из-за содержимого */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+/* Планшет: две колонки по ~350px слишком узкие — одна колонка */
+@media screen and (max-width: 900px) {
+  .aboutInnerCont {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .aboutInnerContStart,
@@ -1987,7 +2095,9 @@ input {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 800px;
+  /* было width: 800px — на 768–1366 правая колонка уезжала за край */
+  width: auto;
+  max-width: 800px;
   padding: 15px;
   background-color: #001677;
   border: solid 1px #002fff;
@@ -2636,6 +2746,60 @@ input {
   width: 48px;
   height: 48px;
 }
+
+/* ---------- Ремонт вёрстки профиля (шире 560px; телефонная вёрстка ниже не тронута) ----------
+   Раньше профиль на ПК был сеткой фиксированной ширины (~1700px): на 768–1366
+   правые колонки («Відсотки», «Досягнення») и часть карточек уезжали за край.
+   Теперь ряды переносятся, полоски сжимаются; когда места хватает — как было. */
+@media screen and (min-width: 561px) {
+  /* фон карточки игрока (картинка 1692px) — по ширине карточки, а не до края окна */
+  .profileInnerUserInfoBack {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left center;
+    border-radius: 16px;
+  }
+
+  .profileInnerHeaderGroups {
+    height: auto;
+    min-height: 900px;
+    min-width: 0;
+  }
+
+  /* активная вкладка — в потоке (высота по содержимому), скрытые — как раньше absolute */
+  .profileInnerHeaderInfo {
+    position: relative;
+    height: auto;
+    min-height: 800px;
+  }
+
+  .profileInnerHeaderInfo1TotalStatGroup,
+  .profileInnerHeaderInfo1TotalStatList,
+  .profileInnerHeaderInfo1TotalStatListDet {
+    flex-wrap: wrap;
+  }
+
+  .profileInnerHeaderInfo1TotalStatGroup > * {
+    min-width: 0;
+  }
+
+  .profileInnerEconomyListItem {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .profileInnerEconomyListItemBack {
+    flex: 1 1 300px;
+    max-width: 500px;
+  }
+
+  .profileInnerTotalMatchesАverageListItemBack,
+  .profileInnerTotalMatchesАverage {
+    max-width: 100%;
+  }
+}
+
 
 .profileInnerHeaderInfo2Nav,
 .profileInnerHeaderInfo3Nav {
@@ -4507,6 +4671,12 @@ input {
   width: 350px;
 }
 
+/* не шире карточки: на 360px подписи пунктов обрезала иконка (блок 350px в карточке ~300px) */
+.workInnerListItemNav,
+.workInnerListItemNavSocial {
+  max-width: 100%;
+}
+
 .workInnerListItemNavSpan,
 .workInnerListItemNavSpanSoc {
   display: flex;
@@ -4838,3 +5008,97 @@ input {
     width: 100%;
   }
 }/*# sourceMappingURL=index.module.css.map */
+
+/* ===== Ремонт вёрстки 27.10 (аудит 25.10): Home / About / Work / Footer ===== */
+
+/* ---------- Ремонт: планшет и ноутбук (шире 560px) ---------- */
+/* герой: блок 1108px не шире экрана */
+.homeInnerContent {
+  max-width: 100%;
+}
+
+@media screen and (min-width: 561px) {
+  /* «Що таке GGenius»: карточки переносятся, а не уезжают за край */
+  .whatinnerList {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}
+
+/* Карта развития на 561–1100px: горизонтальная дорога 1680px не влезает —
+   показываем вертикальный вариант, как на телефоне, по центру */
+@media screen and (min-width: 561px) and (max-width: 1100px) {
+  .progressInnerMap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .progressInnerMapRoad,
+  .progressInnerMapList,
+  .progressInnerMapListTwo {
+    display: none;
+    visibility: hidden;
+  }
+
+  .progressInnerMapRoadMob {
+    display: block;
+    visibility: visible;
+    position: relative;
+    width: 154px;
+    height: 1365px;
+  }
+
+  .progressInnerMapListMob {
+    display: flex;
+    visibility: visible;
+    position: relative;
+    flex-direction: column;
+    height: 754px;
+    gap: 81px;
+    margin-top: 300px;
+    color: #fff;
+  }
+}
+
+/* телефон: шаг не шире колонки, чтобы подпись (max-width: 100%) не была 400px */
+@media screen and (max-width: 560px) {
+  .workInnerListItem {
+    max-width: 100%;
+  }
+}
+
+/* подзаголовки секций (миксин subSection, 680px) — не шире экрана: на 600–650px уезжали за край */
+.aboutInnerHeaderSub,
+.errorPageInnerContSub,
+.homeInnerContentSub,
+.whatinnerSub,
+.workInnerSub {
+  max-width: 100%;
+}
+
+/* блок «Партнерство» (580px от left: 64px) — не шире экрана на 561–660px */
+@media screen and (min-width: 561px) {
+  .partnersInnerCont {
+    max-width: calc(100% - 80px);
+  }
+}
+
+/* блок заголовка 700px — не шире экрана */
+.workInnerGroup {
+  max-width: 100%;
+}
+
+/* Ремонт: пункты меню подвала переносятся на 561–750px, а не уезжают за край
+   (телефонная вёрстка подвала ≤560px не тронута) */
+@media screen and (min-width: 561px) {
+  .footerNavList {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 12px;
+  }
+
+  .footeNav {
+    gap: 24px;
+  }
+}

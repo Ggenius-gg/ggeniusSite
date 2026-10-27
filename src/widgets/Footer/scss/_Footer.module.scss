@@ -128,4 +128,18 @@
   color: #c4c4c4;
 }
 
+/* Ремонт: пункты меню подвала переносятся на 561–750px, а не уезжают за край
+   (телефонная вёрстка подвала ≤560px не тронута) */
+@media screen and (min-width: 561px) {
+  .footerNavList {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 12px;
+  }
+
+  .footeNav {
+    gap: 24px;
+  }
+}
+
 @import "./media.module";

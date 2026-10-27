@@ -26,8 +26,16 @@
 
 .aboutInnerCont {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* minmax(0, 1fr): колонки не растягиваются шире экрана из-за содержимого */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+/* Планшет: две колонки по ~350px слишком узкие — одна колонка */
+@media screen and (max-width: 900px) {
+  .aboutInnerCont {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .aboutInnerContStart,
@@ -35,7 +43,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 800px;
+  /* было width: 800px — на 768–1366 правая колонка уезжала за край */
+  width: auto;
+  max-width: 800px;
   padding: 15px;
   background-color: #001677;
   border: solid 1px #002fff;

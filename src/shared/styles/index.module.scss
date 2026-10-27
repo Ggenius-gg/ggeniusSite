@@ -139,6 +139,7 @@ input {
 
 @mixin subSection {
   width: 680px;
+  max-width: 100%; // не шире экрана на планшете
   text-align: center;
   font-size: 18px;
   font-style: normal;
@@ -228,6 +229,8 @@ input {
 
 .container {
   width: 1680px;
+  /* не шире окна: на 1401–1689px контейнер 1680px вылезал за край (брейкпоинты ниже — только до 1400px) */
+  max-width: calc(100% - 10px);
   margin: 0 auto;
   padding: 0 5px;
 }
