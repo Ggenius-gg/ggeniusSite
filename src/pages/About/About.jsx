@@ -62,9 +62,6 @@ const About = () => {
               <p className={style.aboutInnerContSub}>
                 <Trans i18nKey={'aboutInnerContSubinsideAcc'} components={{ b: <b />, br: <br /> }} />
               </p>
-              <p className={style.aboutInnerContSub}>
-                <Trans i18nKey={'aboutInnerContSubinsideAlm'} components={{ b: <b />, br: <br /> }} />
-              </p>
             </div>
 
             <div className={style.aboutInnerContPlat}>
@@ -76,9 +73,6 @@ const About = () => {
               </p>
               <p className={style.aboutInnerContSub}>
                 <Trans i18nKey={'aboutInnerContSubSecurityAi'} components={{ b: <b />, br: <br /> }} />
-              </p>
-              <p className={style.aboutInnerContSub}>
-                <Trans i18nKey={'aboutInnerContSubSecurityAcc'} components={{ b: <b />, br: <br /> }} />
               </p>
               <p className={style.aboutInnerContSub}>
                 <Trans i18nKey={'aboutInnerContSubSecurityAlm'} components={{ b: <b />, br: <br /> }} />
@@ -119,7 +113,7 @@ const About = () => {
               <p className={style.aboutInnerContSub}>
                 <Trans i18nKey={'aboutInnerContSubGameAcc'} components={{
                   b: <b />,
-                  a: <a href='https://ggenius.gg/' className={style.offerInnerStatSubjListItemSubLink} />,
+                  a: <a href='https://ggenius.shop/' className={style.offerInnerStatSubjListItemSubLink} />,
                 }} />
               </p>
 
